@@ -1,0 +1,39 @@
+CREATE TYPE objectId AS (objectIdValue text);
+CREATE TABLE buyers(id ObjectId, buyerName text, value numeric);
+CREATE TABLE individualBuyers(dateRegistered Date, buyerPersonalId text, transactions objectId[]) INHERITS(buyers);
+CREATE TABLE corporateBuyers(address text, companyId text, transactions objectId[]) INHERITS(buyers);
+
+
+INSERT INTO public.individualbuyers(
+	id, buyername, value, dateregistered, buyerpersonalid, transactions)
+	VALUES (row('IB02')::objectid, 'Bianca Lupu', 700, '2016-07-15', 'bianca.lupu', 
+		   array[row('TIB0223339')::objectid, row('TIB0115555')::objectid]);
+
+INSERT INTO public.corporatebuyers(
+	id, buyername, value, address, companyid, transactions)
+	VALUES (row('CB02')::objectid, 'Maria Dobre', 2700, 'Moinesti49', 'REM587',
+			array[row('TCB0110339')::objectid, row('TCB0112090')::objectid] );
+
+INSERT INTO public.transactions(
+	id, "transactionNumber", value, description)
+	VALUES (row('TCB0112090')::objectId, 937446321, 100, 'office supplie June 2018');
+
+
+SELECT  buyername FROM public.individualbuyers;
+
+UPDATE public.corporatebuyers
+	SET  buyername='Cornel Ionescu'
+	WHERE address = 'VasileMilea4E';
+
+DELETE FROM public.individualbuyers
+	WHERE buyername = 'Maria Dobre';
+
+
+SELECT  buyername FROM public.individualbuyers;
+
+http://127.0.0.1:49747/browser/
+
+Types that have no mapping are currently mapped to java.lang.String. The standard PostgreSQL textin/textout routines registered for respective type will be used when the values are converted.
+https://github.com/tada/pljava/wiki/Default-type-mapping
+
+
