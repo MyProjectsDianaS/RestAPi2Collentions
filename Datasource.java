@@ -2,11 +2,12 @@ package com.didi.model;
 
 import java.sql.*;
 import java.util.ArrayList;
+//import org.postgresql.
 
 public class Datasource {
 
     public static final String DB_NAME = "Buyers.db";
-    public static final String CONNECTION_STRING = "jdbc:postgresql://localhost:5432/" ;
+    public static final String CONNECTION_STRING = "jdbc:postgresql://localhost:5432/Buyers";
 
     public static final String TABLE_BUYER = "buyers";
     public static final String COLUMN_BUYER_ID = "id";
@@ -48,28 +49,28 @@ public class Datasource {
 
     public static final String INSERT_INDIVIDUALBUYER = "INSERT INTO public." + TABLE_INDIVIDUALBUYER +
             '(' + COLUMN_BUYER_ID + ", " + COLUMN_BUYER_NAME + "," +
-                  COLUMN_BUYER_VALUE + ", " + COLUMN_INDIVIDUALBUYER_DATEREGISTERED + ", " +
-                  COLUMN_INDIVIDUALBUYER_PID + ", " + COLUMN_INDIVIDUALBUYER_TRANSACTIONS +
+            COLUMN_BUYER_VALUE + ", " + COLUMN_INDIVIDUALBUYER_DATEREGISTERED + ", " +
+            COLUMN_INDIVIDUALBUYER_PID + ", " + COLUMN_INDIVIDUALBUYER_TRANSACTIONS +
             ") VALUES(?, ?, ?, ?, ?, ?)";
     public static final String INSERT_CORPORATEBUYER = "INSERT INTO public." + TABLE_CORPORATEBUYER +
             '(' + COLUMN_BUYER_ID + ", " + COLUMN_BUYER_NAME + ", " +
-                  COLUMN_BUYER_VALUE + ", " + COLUMN_CORPORATEBUYER_ADDRESS + ", " +
-                  COLUMN_CORPORATEBUYER_CID + ", " + COLUMN_CORPORATEBUYER_TRANSACTIONS +
+            COLUMN_BUYER_VALUE + ", " + COLUMN_CORPORATEBUYER_ADDRESS + ", " +
+            COLUMN_CORPORATEBUYER_CID + ", " + COLUMN_CORPORATEBUYER_TRANSACTIONS +
             ") VALUES(?, ?, ? ,? ,?, ?)";
 
     public static final String INSERT_TRANSACTION = "INSERT INTO public." + TABLE_TRANSACTIONS +
-            '(' + COLUMN_TRANSACTION_ID + ", " + COLUMN_TRANSACTION_NUMBER + ", " +
-                  COLUMN_TRANSACTION_VALUE + ", " + COLUMN_TRANSACTION_DESCRIPTION +
-            ") VALUES(?, ?, ?, ?)";
+            '(' + COLUMN_TRANSACTION_ID + ", \"" + COLUMN_TRANSACTION_NUMBER + "\", " +
+            COLUMN_TRANSACTION_VALUE + ", " + COLUMN_TRANSACTION_DESCRIPTION +
+            ") VALUES(row( ? )::objectId, ?, ?, ?)";
 
     public static final String QUERY_INDIVIDUALBUYERS = "SELECT " + COLUMN_BUYER_NAME + " FROM public." +
-            TABLE_INDIVIDUALBUYER ;
+            TABLE_INDIVIDUALBUYER;
 
     public static final String QUERY_CORPORATEBUYERS = "SELECT " + COLUMN_BUYER_NAME + " FROM public." +
-            TABLE_CORPORATEBUYER ;
+            TABLE_CORPORATEBUYER;
 
-    public static final String QUERY_TRANSACTIONS  = "SELECT " + COLUMN_TRANSACTION_VALUE + " FROM public." +
-            TABLE_TRANSACTIONS + " WHERE " +  COLUMN_TRANSACTION_NUMBER + " = \"";
+    public static final String QUERY_TRANSACTIONS = "SELECT " + COLUMN_TRANSACTION_VALUE + " FROM public." +
+            TABLE_TRANSACTIONS + " WHERE " + COLUMN_TRANSACTION_NUMBER + " = \"";
 
 //    public static final String QUERY_VIEW_TRANSACTION_INFO = "SELECT " + COLUMN_TRANSACTION_VALUE + ", " +
 //            COLUMN_SONG_ALBUM + ", " + COLUMN_SONG_TRACK + " FROM " + TABLE_ARTIST_SONG_VIEW +
@@ -84,13 +85,19 @@ public class Datasource {
     private PreparedStatement queryIndividualBuyers;
     private PreparedStatement queryCorporateBuyers;
 
+
+
+
+
+
     public boolean open() {
         try {
-            conn = DriverManager.getConnection(CONNECTION_STRING, "postgres" ,"sarchizian");
-//            querySongInfoView = conn.prepareStatement(QUERY_VIEW_SONG_INFO_PREP);
+            conn = DriverManager.getConnection(CONNECTION_STRING, "postgres", "sarchizian");
+
             insertIntoIndividualBuyers = conn.prepareStatement(INSERT_INDIVIDUALBUYER, Statement.RETURN_GENERATED_KEYS);
             insertIntoCorporateBuyers = conn.prepareStatement(INSERT_CORPORATEBUYER, Statement.RETURN_GENERATED_KEYS);
             insertIntoTransactions = conn.prepareStatement(INSERT_TRANSACTION);
+
             queryIndividualBuyers = conn.prepareStatement(QUERY_INDIVIDUALBUYERS);
             queryCorporateBuyers = conn.prepareStatement(QUERY_CORPORATEBUYERS);
 
@@ -104,28 +111,24 @@ public class Datasource {
 
     public void close() {
         try {
-//
-//            if(querySongInfoView != null) {
-//                querySongInfoView.close();
-//            }
 
-            if(insertIntoIndividualBuyers != null) {
+            if (insertIntoIndividualBuyers != null) {
                 insertIntoIndividualBuyers.close();
             }
 
-            if(insertIntoCorporateBuyers != null) {
+            if (insertIntoCorporateBuyers != null) {
                 insertIntoCorporateBuyers.close();
             }
 
-            if(insertIntoTransactions !=  null) {
+            if (insertIntoTransactions != null) {
                 insertIntoTransactions.close();
             }
 
-            if(queryIndividualBuyers != null) {
+            if (queryIndividualBuyers != null) {
                 queryIndividualBuyers.close();
             }
 
-            if(queryCorporateBuyers != null) {
+            if (queryCorporateBuyers != null) {
                 queryCorporateBuyers.close();
             }
 
@@ -137,32 +140,49 @@ public class Datasource {
         }
     }
 
+    public void queryTransactionsMetadata() {
+        String sql = "SELECT * FROM " + TABLE_TRANSACTIONS;
 
-    private int insertIndividualBuyer(ObjectId id, String buyerName, long value,
+        try (Statement statement = conn.createStatement();
+             ResultSet results = statement.executeQuery(sql)) {
+
+            ResultSetMetaData meta = results.getMetaData();
+            int numColumns = meta.getColumnCount();
+            for (int i = 1; i <= numColumns; i++) {
+                System.out.format("Column %d in the transactions table is named %s\n",
+                        i, meta.getColumnName(i));
+            }
+        } catch (SQLException e) {
+            System.out.println("Query failed: " + e.getMessage());
+        }
+    }
+
+
+    public int insertIndividualBuyer(String id, String buyerName, long value,
                                       Date dateRegistered, String buyerPersonalId,
-                                      ArrayList<ObjectId> transactions) throws SQLException {
+                                      ArrayList<String> transactions) throws SQLException {
 
 
         ResultSet results = queryIndividualBuyers.executeQuery();
-        if(results.next()) {
+        if (results.next()) {
             return results.getInt(1);
         } else {
             // Insert the IndividualBuyer
-            insertIntoIndividualBuyers.setObject(1,  id);
-            insertIntoIndividualBuyers.setString(2,  buyerName);
-            insertIntoIndividualBuyers.setLong(3,  value);
-            insertIntoIndividualBuyers.setDate(4,  dateRegistered);
-            insertIntoIndividualBuyers.setString(5,  buyerPersonalId);
-            insertIntoIndividualBuyers.setObject(6,  transactions);
+            insertIntoIndividualBuyers.setObject(1, id);
+            insertIntoIndividualBuyers.setString(2, buyerName);
+            insertIntoIndividualBuyers.setLong(3, value);
+            insertIntoIndividualBuyers.setDate(4, dateRegistered);
+            insertIntoIndividualBuyers.setString(5, buyerPersonalId);
+            insertIntoIndividualBuyers.setObject(6, transactions);
 
             int affectedRows = insertIntoIndividualBuyers.executeUpdate();
 
-            if(affectedRows != 1) {
+            if (affectedRows != 1) {
                 throw new SQLException("Couldn't insert IndividualBuyer!");
             }
 
             ResultSet generatedKeys = insertIntoIndividualBuyers.getGeneratedKeys();
-            if(generatedKeys.next()) {
+            if (generatedKeys.next()) {
                 return generatedKeys.getInt(1);
             } else {
                 throw new SQLException("Couldn't get id for IndividualBuyer");
@@ -170,7 +190,7 @@ public class Datasource {
         }
     }
 
-    public void insertTransaction(ObjectId id, long transactionNumber, long value, String description) {
+    public void insertTransaction(String id, long transactionNumber, long value, String description) {
 
         try {
             conn.setAutoCommit(false);
@@ -178,27 +198,27 @@ public class Datasource {
             insertIntoTransactions.setObject(1, id);
             insertIntoTransactions.setLong(2, transactionNumber);
             insertIntoTransactions.setLong(3, value);
-            insertIntoTransactions.setString(3, description);
+            insertIntoTransactions.setString(4, description);
             int affectedRows = insertIntoTransactions.executeUpdate();
-            if(affectedRows == 1) {
+            if (affectedRows == 1) {
                 conn.commit();
             } else {
                 throw new SQLException("The transaction insert failed");
             }
 
-        } catch(Exception e) {
+        } catch (Exception e) {
             System.out.println("Insert transaction exception: " + e.getMessage());
             try {
                 System.out.println("Performing rollback");
                 conn.rollback();
-            } catch(SQLException e2) {
+            } catch (SQLException e2) {
                 System.out.println("Oh boy! Things are really bad! " + e2.getMessage());
             }
         } finally {
             try {
                 System.out.println("Resetting default commit behavior");
                 conn.setAutoCommit(true);
-            } catch(SQLException e) {
+            } catch (SQLException e) {
                 System.out.println("Couldn't reset auto-commit! " + e.getMessage());
             }
 

@@ -3,7 +3,9 @@ package com.didi;
 import com.didi.model.Datasource;
 import com.didi.model.ObjectId;
 
-import java.util.List;
+import java.sql.Date;
+import java.util.ArrayList;
+
 
 public class Main {
 
@@ -14,16 +16,6 @@ public class Main {
             return;
         }
 
-//        List<Artist> artists = datasource.queryArtists(5);
-//        if(artists == null) {
-//            System.out.println("No artists!");
-//            return;
-//        }
-//
-//        for(Artist artist : artists) {
-//            System.out.println("ID = " + artist.getId() + ", Name = " + artist.getName());
-//        }
-//
 //        List<String> albumsForArtist =
 //                datasource.queryAlbumsForArtists("Pink Floyd", Datasource.ORDER_BY_DESC );
 //
@@ -31,9 +23,17 @@ public class Main {
 //            System.out.println(album);
 //        }
 
-        ObjectId id = new ObjectId();
-        id.setObjectIdValue("TCB2555696");
-        datasource.insertTransaction(id, 58623694, 2001, "wedding gift");
+        datasource.queryTransactionsMetadata();
+//        datasource.insertTransaction(new ObjectId("TCB2555696").toString(),
+//                58623694, 2001, "wedding gift");
+
+        ArrayList<String> tr =  new ArrayList<>();
+        tr.add(new ObjectId("TIB203596387").toString());
+        tr.add(new ObjectId("TIB203594000").toString());
+        tr.add(new ObjectId("TIB203594005").toString());
+        datasource.insertIndividualBuyer(new  ObjectId("IB03").toString(),
+                "Dorin Vasile", 500, new Date(2019,03,21) ,
+                "dorin.vasile89", tr);
         datasource.close();
 
     }
