@@ -37,3 +37,74 @@ Types that have no mapping are currently mapped to java.lang.String. The standar
 https://github.com/tada/pljava/wiki/Default-type-mapping
 
 
+
+
+INSERT INTO public.corporatebuyers(
+	id, "buyerName", value, address, "companyId", transactions)
+	VALUES (uuid_generate_v4(), 'Dana Vasiliu', 5239685, 'VasileMilea4E', 'Atmel', 2563954);
+INSERT INTO public.transactions(
+	id, "transactionNumber", value, description)
+	VALUES (uuid_generate_v4(), 3056987, 12700, 'MontBlanc trip');
+
+
+INSERT INTO public.maptransactions(
+	id, bind)
+	VALUES (11102589, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid);
+
+INSERT INTO public.individualbuyers(
+	id, "buyerName", value, "dateRegistered", "buyerPersonalId", transactions)
+	VALUES (uuid_generate_v4(), 'Bianca Lupu', 22255569, '2018-02-27', 'b.lupu', '111025');
+
+
+INSERT INTO public.transactions(
+	id, "transactionNumber", value, description)
+	VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid, 3056987, 12700, 'MontBlanc trip');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
